@@ -15,9 +15,9 @@ const productsSchema =  new mongoose.Schema({
     title: {
         type: String,
         required: [true, "product title is required"],
-        minlength: [3, "minimum length of the product title should be 3"],
-        maxlength: [20, "minimum length of the product title should be 20"],
-        trim: true,
+        // minlength: [3, "minimum length of the product title should be 3"],
+        // maxlength: [20, "minimum length of the product title should be 20"],
+        // trim: true,
         // enum: "iphone", "samsung"]
         // enum: {
         //     values: ["iphone", "samsung"],
@@ -25,17 +25,34 @@ const productsSchema =  new mongoose.Schema({
         // }
         // lowercase: true,
         // upplercase: false,
+        
+        // validate: {
+        //     validator: function (v){
+        //         return v.length == 10;
+        //     },
+        //     message: (props) => `${props.value} is not a valid title` 
+        // }
     },
     price: {
         type: Number,
         required: true,
-        min: 1,
+        min: [1, "minimum price of the product should be 1"],
         max: [50000, "maximum price of the product should be 50000"]
     },
 
     email: {
         type: String,
         unique: true,
+    },
+
+    phone: {
+        type: String,
+        required: [true, "Phone number is required"],
+        // unique: true,
+        // validate: function(v){
+        //     return /\d{3}-\d{3}-\d{4}/.test(v);
+        // },
+        // message: (props)=> `${props.value} is not a valid phone number`
     },
 
     description: {
@@ -67,13 +84,14 @@ app.get("/", (req, res)=> {
 app.post('/product', async (req, res) => {
     try {
         // get data from reqest body
-        const { title,price,description,rating } = req.body;
+        const { title,price,description,rating, phone } = req.body;
         
         const newProduct = new Product({
             title: title,
             price: price, 
             description: description,
-            rating: rating
+            rating: rating,
+            phone: phone
         })
 
         const productData = await newProduct.save();
