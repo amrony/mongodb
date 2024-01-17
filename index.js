@@ -14,12 +14,30 @@ app.use(express.urlencoded({extended: true}));
 const productsSchema =  new mongoose.Schema({
     title: {
         type: String,
-        required: true,
+        required: [true, "product title is required"],
+        minlength: [3, "minimum length of the product title should be 3"],
+        maxlength: [20, "minimum length of the product title should be 20"],
+        trim: true,
+        // enum: "iphone", "samsung"]
+        // enum: {
+        //     values: ["iphone", "samsung"],
+        //     message: `{VALUE} is not supported`
+        // }
+        // lowercase: true,
+        // upplercase: false,
     },
     price: {
         type: Number,
         required: true,
+        min: 1,
+        max: [50000, "maximum price of the product should be 50000"]
     },
+
+    email: {
+        type: String,
+        unique: true,
+    },
+
     description: {
         type: String,
         required: true,
@@ -83,15 +101,22 @@ app.post('/product', async (req, res) => {
 
 app.put('/product/update/:id', async (req, res) => {
     try {
-        const { title,price,rating } = req.body;
+        const { title, price, rating, description } = req.body;
 
         const id = req.params.id;
 
-        const product = await Product.updateOne({ _id: id }, {
-            $set: {
-                rating: rating
-            }
-        });
+        const product = await Product.findByIdAndUpdate(
+            { _id: id }, 
+            {
+                $set: {
+                    title: title,
+                    price: price,
+                    description: description,
+                    rating: rating
+                },
+            },
+            {new: true}
+        );
 
         if(product){
             res.status(200).send({
@@ -116,7 +141,6 @@ app.get('/get/product', async (req, res) => {
     try {
         const price = req.query.price;
         const rating = req.query.rating;
-
         let products;
 
         if(price && rating){
@@ -126,15 +150,11 @@ app.get('/get/product', async (req, res) => {
                     { rating: { $gt: rating } }
                 ]
             }).sort({ price: 1 });
-            // 1 asc and -1 desc
-            // }).countDocuments();
         }else{
             products = await Product.find().countDocuments();
         }
 
-
         if(products){
-            
             res.status(200).send({
                 success: true,
                 message: "return all products",
@@ -145,8 +165,6 @@ app.get('/get/product', async (req, res) => {
                 message: "Product not found!"
             });
         }
-
-       
     } catch (error) {
         res.status(500).send({message: error.message});
     }
@@ -192,7 +210,6 @@ app.delete('/product/:id', async (req, res)=> {
         const id = req.params.id;
 
         const product = await Product.findByIdAndDelete({ _id: id });
-        // db.deleteOne(product);
 
         if(product){
             res.status(200).send({
@@ -212,38 +229,6 @@ app.delete('/product/:id', async (req, res)=> {
 });
 
 
-
-app.post("product/updatedd", async (req, res)=>{
-
-    res.status(500).send("hello");
-
-    try {
-        const id = req.params.id;
-
-        const product = await Product.updateOne({ _id: id }, {
-            $set: {
-                rating: 4.8
-            }
-        })
-        // db.deleteOne(product);
-
-        if(product){
-            res.status(200).send({
-                success: true,
-                message: "Update Successfully",
-                data: product
-            });
-        }else{
-            res.status(404).send({
-                message: "Product not found!"
-            });
-        }
-
-    } catch (error) {
-        res.status(500).send({message: error.message});
-    }
-})
-   
 const connectDB = async ()=> {
     try {
         await mongoose.connect('mongodb://127.0.0.1:27017/testProductDB')
