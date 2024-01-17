@@ -37,13 +37,16 @@ const productsSchema =  new mongoose.Schema({
 // create product model
 const Product = mongoose.model("Products", productsSchema);
 
+
+  
+
 app.get("/", (req, res)=> {
     res.send("welcome to home page")
 });
 
 
 //Create 
-app.post('/products', async (req, res) => {
+app.post('/product', async (req, res) => {
     try {
         // get data from reqest body
         const { title,price,description,rating } = req.body;
@@ -78,11 +81,33 @@ app.post('/products', async (req, res) => {
 });
 
 
-//conditional operation
-// [{ price: {$ne: 70} }, { rating: {$gt: 200} }]
+app.put('/product/update/:id', async (req, res) => {
+    try {
+        const { title,price,rating } = req.body;
 
-// [{ price: {$gt: 300} }, { rating: {$gt : 4} }]
+        const id = req.params.id;
 
+        const product = await Product.updateOne({ _id: id }, {
+            $set: {
+                rating: rating
+            }
+        });
+
+        if(product){
+            res.status(200).send({
+                success: true,
+                message: "Update Successfully",
+                data: product
+            });
+        }else{
+            res.status(404).send({
+                message: "Product not found!"
+            });
+        }
+    } catch (error) {
+        res.status(500).send({message: error.message});
+    }
+});
 
 
 
@@ -143,6 +168,7 @@ app.get('/products', async (req, res) => {
     }
 });
 
+
 //red by id
 app.get('/product/:id', async (req, res) => {
     try {
@@ -184,11 +210,44 @@ app.delete('/product/:id', async (req, res)=> {
         res.status(500).send({message: error.message});
     }
 });
+
+
+
+app.post("product/updatedd", async (req, res)=>{
+
+    res.status(500).send("hello");
+
+    try {
+        const id = req.params.id;
+
+        const product = await Product.updateOne({ _id: id }, {
+            $set: {
+                rating: 4.8
+            }
+        })
+        // db.deleteOne(product);
+
+        if(product){
+            res.status(200).send({
+                success: true,
+                message: "Update Successfully",
+                data: product
+            });
+        }else{
+            res.status(404).send({
+                message: "Product not found!"
+            });
+        }
+
+    } catch (error) {
+        res.status(500).send({message: error.message});
+    }
+})
    
 const connectDB = async ()=> {
     try {
         await mongoose.connect('mongodb://127.0.0.1:27017/testProductDB')
-        console.log("DB is connected");
+        console.log("DBd is connected");
     } catch (error) {
         console.log("DB is not connected");
         console.log(error.message);
